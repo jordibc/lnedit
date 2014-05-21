@@ -21,14 +21,28 @@ often for me!):
 
 I am going to work on some colleague's data, the program needs to know
 about (most of) it, but I don't need to modify it all (and don't want
-to -- it's huge!). So first:
+to -- it's huge!). So first::
 
   $ ln -s ~colleague/bigdir .
 
-Then I just go to the files that I want to actually edit:
+Now I have a symlink `bigdir -> ~colleague/bigdir`. I'm actually
+interested in modifying `bigdir/projects/superduper/data` but letting
+`bigdir/logs`, `bigdir/auxiliary_stuff` and so on stay there. So I just::
 
   $ lnedit bigdir/projects/superduper/data
 
-Ta-da! I can modify "data" and enjoy using all the other files without
-having copied anything else, and still have the main program run using
-it all, my colleague's files and my modified files.
+Ta-da! Now I have::
+
+  bigdir/
+  bigdir/logs -> ~colleague/bigdir/logs
+  bigdir/auxiliary_stuff -> ~colleague/bigdir/auxiliary_stuff
+  bigdir/projects/
+  bigdir/projects/baby_steps ->  ~colleague/bigdir/projects/baby_steps
+  bigdir/projects/superduper/
+  bigdir/projects/superduper/f1 -> ~colleague/bigdir/projects/superduper/f1
+  bigdir/projects/superduper/f2 -> ~colleague/bigdir/projects/superduper/f2
+  bigdir/projects/superduper/data
+
+I can modify `data` and enjoy using all the other files without having
+copied anything else, and still have the main program run using it
+all, my colleague's files and my modified files.
