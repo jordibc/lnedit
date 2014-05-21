@@ -1,0 +1,60 @@
+#!/usr/bin/env python
+
+"""
+Convert a symbolic link into an editable file or directory.
+
+If it links to a directory, it will create it and make links to all
+its contents.
+
+If it links to a file deep in a hierarchy like:
+  remotedir/blabla/interestingfile
+it will re-create the whole hierarchy and finally copy the target file.
+"""
+
+import os
+import shutil
+from argparse import ArgumentParser, RawTextHelpFormatter as fmt
+
+
+def main():
+    parser = ArgumentParser(description=__doc__, formatter_class=fmt)
+    parser.add_argument('target', help='link that we want to make editable')
+    parser.add_argument('--silent', action='store_true', help='be less verbose')
+    args = parser.parse_args()
+
+    cwd = os.getcwd()
+    path = args.target
+    while True:
+        if '/' not in path:
+            edit(path, args.silent)
+            break
+        dirname, path = path.split('/', 1)
+        edit(dirname, args.silent)
+        os.chdir(dirname)
+    os.chdir(cwd)
+
+
+def edit(orig_name, silent=True):
+    "Convert orig_name into an editable form"
+
+    if not os.path.islink(orig_name):
+        if not silent:
+            print 'Skipping %s -- not a link' % orig_name
+        return  # nothing to do, it is already not a link
+
+    path = os.path.realpath(orig_name)
+    os.remove(orig_name)
+
+    if not silent:
+        print 'Creating %s -> %s' % (path, orig_name)
+    if os.path.isdir(path):
+        os.mkdir(orig_name)
+        for name in os.listdir(path):
+            os.symlink('%s/%s' % (path, name), '%s/%s' % (orig_name, name))
+    else:
+        shutil.copyfile(path, orig_name)
+
+
+
+if __name__ == '__main__':
+    main()
