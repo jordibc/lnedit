@@ -18,20 +18,22 @@ from argparse import ArgumentParser, RawTextHelpFormatter as fmt
 
 def main():
     parser = ArgumentParser(description=__doc__, formatter_class=fmt)
-    parser.add_argument('target', help='link that we want to make editable')
+    parser.add_argument('links', metavar='TARGET', nargs='+',
+                        help='link that we want to make editable')
     parser.add_argument('--silent', action='store_true', help='be less verbose')
     args = parser.parse_args()
 
     cwd = os.getcwd()
-    path = args.target
-    while True:
-        if '/' not in path:
-            edit(path, args.silent)
-            break
-        dirname, path = path.split('/', 1)
-        edit(dirname, args.silent)
-        os.chdir(dirname)
-    os.chdir(cwd)
+
+    for path in args.links:
+        while True:
+            if '/' not in path:
+                edit(path, args.silent)
+                break
+            dirname, path = path.split('/', 1)
+            edit(dirname, args.silent)
+            os.chdir(dirname)
+        os.chdir(cwd)
 
 
 def edit(orig_name, silent=True):
