@@ -27,12 +27,12 @@ to -- it's huge!). So first::
 
 Now I have a symlink `bigdir -> ~colleague/bigdir`. I'm actually
 interested in modifying `bigdir/projects/superduper/data` but letting
-`bigdir/logs`, `bigdir/auxiliary_stuff` and so on stay there. So I just::
-
+`bigdir/logs`, `bigdir/auxiliary_stuff` and so on stay there. So I just:
+```
   $ lnedit bigdir/projects/superduper/data
-
-Ta-da! Now I have::
-
+```
+Ta-da! Now I have:
+```
   bigdir/
   bigdir/logs -> ~colleague/bigdir/logs
   bigdir/auxiliary_stuff -> ~colleague/bigdir/auxiliary_stuff
@@ -42,7 +42,7 @@ Ta-da! Now I have::
   bigdir/projects/superduper/f1 -> ~colleague/bigdir/projects/superduper/f1
   bigdir/projects/superduper/f2 -> ~colleague/bigdir/projects/superduper/f2
   bigdir/projects/superduper/data
-
+```
 I can modify `data` and enjoy using all the other files without having
 copied anything else, and still have the main program run using it
 all, my colleague's files and my modified files.
