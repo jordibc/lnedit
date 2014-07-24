@@ -55,6 +55,7 @@ def edit(orig_name, silent=True):
             os.symlink('%s/%s' % (path, name), '%s/%s' % (orig_name, name))
     else:
         shutil.copyfile(path, orig_name)
+        shutil.copymode(path, orig_name)
 
 
 
