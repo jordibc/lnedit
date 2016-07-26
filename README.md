@@ -6,11 +6,12 @@ Convert a symbolic link into an editable file or directory.
 If it links to a directory, it will create it and make links to all
 its contents.
 
-If it links to a file deep in a hierarchy like:
+If it links to a file deep in a directory hierarchy like:
 ```
 remotedir/blabla/interestingfile
 ```
-it will re-create the whole hierarchy and finally copy the target file.
+it will re-create the whole directory hierarchy and finally copy the
+target file.
 
 
 Rationale
@@ -29,7 +30,7 @@ $ ln -s ~colleague/bigdir .
 
 Now I have a symlink `bigdir -> ~colleague/bigdir`. I'm actually
 interested in modifying `bigdir/projects/superduper/data` but letting
-`bigdir/logs`, `bigdir/auxiliary_stuff` and so on stay there. So I just:
+`bigdir/logs`, `bigdir/auxiliary_stuff` and so on untouched. So I just:
 
 ```
 $ lnedit bigdir/projects/superduper/data
