@@ -41,14 +41,14 @@ def edit(orig_name, silent=True):
 
     if not os.path.islink(orig_name):
         if not silent:
-            print 'Skipping %s -- not a link' % orig_name
+            print('Skipping %s -- not a link' % orig_name)
         return  # nothing to do, it is already not a link
 
     path = os.path.realpath(orig_name)
     os.remove(orig_name)
 
     if not silent:
-        print 'Creating %s -> %s' % (path, orig_name)
+        print('Creating %s -> %s' % (path, orig_name))
     if os.path.isdir(path):
         os.mkdir(orig_name)
         for name in os.listdir(path):
