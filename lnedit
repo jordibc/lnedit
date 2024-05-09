@@ -7,55 +7,77 @@ If it links to a directory, it will create it and make links to all
 its contents.
 
 If it links to a file deep in a hierarchy like:
-  remotedir/blabla/interestingfile
+
+  remotedir/blahblah/interestingfile
+
 it will re-create the whole hierarchy and finally copy the target file.
 """
 
 import os
+from logging import basicConfig, INFO, WARNING, info
 import shutil
 from argparse import ArgumentParser, RawTextHelpFormatter as fmt
 
 
 def main():
-    parser = ArgumentParser(description=__doc__, formatter_class=fmt)
-    parser.add_argument('links', metavar='TARGET', nargs='+',
-                        help='link that we want to make editable')
-    parser.add_argument('--silent', action='store_true', help='be less verbose')
-    args = parser.parse_args()
+    args = get_args()
+
+    basicConfig(format='%(message)s', level=(WARNING if args.silent else INFO))
 
     cwd = os.getcwd()
 
     for path in args.links:
+        path = path.rstrip('/')  # in case we got a directory ending with "/"
+
+        # For absolute paths, start at / and make it relative from there.
+        if path.startswith('/'):
+            os.chdir('/')
+            path = path.lstrip('/')
+
+        # Make editable the parent directories until we get to the tip.
         while True:
-            if '/' not in path:
-                edit(path, args.silent)
+            if '/' in path:  # make the base directory editable first
+                dirname, path = path.split('/', 1)
+                edit(dirname)
+                os.chdir(dirname)
+            else:  # we are at the end, no more base directories!
+                edit(path)
                 break
-            dirname, path = path.split('/', 1)
-            edit(dirname, args.silent)
-            os.chdir(dirname)
+
         os.chdir(cwd)
 
 
-def edit(orig_name, silent=True):
-    "Convert orig_name into an editable form"
+def get_args():
+    """Return the command-line arguments."""
+    parser = ArgumentParser(description=__doc__, formatter_class=fmt)
+    add = parser.add_argument  # shortcut
 
-    if not os.path.islink(orig_name):
-        if not silent:
-            print('Skipping %s -- not a link' % orig_name)
+    add('links', metavar='TARGET', nargs='+', help='link to make "editable"')
+    add('--silent', action='store_true', help='be less verbose')
+
+    return parser.parse_args()
+
+
+def edit(link):
+    """Convert link into an "editable" form."""
+    # Skip non-links.
+    if not os.path.islink(link):
+        info('Skipping %s -- not a link' % link)
         return  # nothing to do, it is already not a link
 
-    path = os.path.realpath(orig_name)
-    os.remove(orig_name)
+    path = os.path.realpath(link)
 
-    if not silent:
-        print('Creating %s -> %s' % (path, orig_name))
-    if os.path.isdir(path):
-        os.mkdir(orig_name)
+    os.remove(link)  # remove the link, we will change it for its old content
+
+    info('Creating %s -> %s' % (path, link))
+
+    if os.path.isdir(path):  # directories get populated with links
+        os.mkdir(link)
         for name in os.listdir(path):
-            os.symlink('%s/%s' % (path, name), '%s/%s' % (orig_name, name))
-    else:
-        shutil.copyfile(path, orig_name)
-        shutil.copymode(path, orig_name)
+            os.symlink('%s/%s' % (path, name), '%s/%s' % (link, name))
+    else:  # all the rest (normally files) are just copied
+        shutil.copyfile(path, link)
+        shutil.copymode(path, link)  # keeping the original permissions
 
 
 
