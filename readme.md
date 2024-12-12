@@ -13,7 +13,7 @@ directory hierarchy and finally copy the target file.
 ## 📥 Installation
 
 Just copy the `lnedit` file anywhere you want. I have it in my
-`.local/bin` directory (which is in my `PATH`.)
+`$HOME/.local/bin` directory (which is in my `$PATH`.)
 
 
 ## 💡 Rationale
@@ -50,9 +50,9 @@ bigdir/subdir/subsubdir/f2 -> /home/colleague/bigdir/subdir/subsubdir/f2
 bigdir/subdir/subsubdir/data
 ```
 
-I can modify `data` and still usie all the other files without having
-copied anything else. It means that my program will run using it
-all, my colleague's files and my modified files.
+I can modify `data` and still use all the other files without having
+copied anything else. It means that my program will run using all my
+colleague's files, except for the ones that I modified.
 
 
 ## ⚖️ License
