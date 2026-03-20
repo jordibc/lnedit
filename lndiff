@@ -1,0 +1,131 @@
+#!/usr/bin/env python3
+
+"""
+Show which paths (files/dirs) have differences, for a directory that
+used to be a symbolic link and got converted into an "editable directory"
+by using lnedit.
+"""
+
+import sys
+import os
+from logging import basicConfig, INFO, WARNING, DEBUG, info, warning, debug
+from argparse import ArgumentParser
+
+
+def main():
+    args = get_args()
+
+    levels = {'info': INFO, 'warn': WARNING, 'debug': DEBUG}
+    basicConfig(format='%(message)s', level=levels[args.verbosity])
+
+    try:
+        diff(args.path, args.target)
+    except AssertionError as e:
+        sys.exit(e)
+
+
+def get_args():
+    """Return the command-line arguments."""
+    parser = ArgumentParser(description=__doc__)
+    add = parser.add_argument  # shortcut
+
+    add('path', help='path of the directory to compare')
+    add('-t', '--target', help='path to the directory it used to link to (guessed if not given)')
+    add('-v', '--verbosity', choices=['info', 'warn', 'debug'], default='info', help='verbosity level')
+
+    return parser.parse_args()
+
+
+def diff(path, target):
+    assert not os.path.islink(path), f'Path is a symlink: {path}'
+
+    target = target or find_target(path)
+
+    assert target is not None, 'Cannot find target link.'
+    assert os.path.isdir(target), f'Target is not a dir: {target}'
+
+    target = target.rstrip('/')  # clean up target name if necessary
+
+    info(blue(f'Comparing {path} and {target}'))
+    # info(f'Consider running "meld {path} {target}" or "diff -r {path} {target}".')
+
+    for root_target, dirs, files in os.walk(target):
+        root_local = path + root_target[len(target):]
+        for name in files + dirs:
+            f_target = root_target + '/' + name
+            f_local  = root_local  + '/' + name
+            if not os.path.exists(f_local):
+                warn(f'Target path does not exist locally: {f_target}')
+                if os.path.isdir(f_target):
+                    dirs.remove(os.path.basename(f_target))  # don't go there
+            elif os.path.islink(f_local):
+                if os.readlink(f_local) != f_target:
+                    warn(f'Local file is symlink to somewhere else: {f_local}')
+                else:
+                    debug(f'Local file is symlink to target: {f_local}')
+                if os.path.isdir(f_target):
+                    dirs.remove(os.path.basename(f_target))  # don't go there
+            elif os.path.isfile(f_local):
+                if diff_files(f_target, f_local):
+                    warn(f'Different local and target files: {f_local}')
+                else:
+                    debug(f'Local file is the same as target: {f_local}')
+
+
+def find_target(path):
+    """Return path that the first symbolic link (in given path) points to."""
+    link = next(links(path), None)
+
+    if link is None:
+        return None
+
+    target = os.readlink(link)
+    tip = os.path.basename(os.path.realpath(path))
+
+    while target != '/' and not target.endswith(tip):
+        target = os.path.dirname(target)
+
+    return target if target != '/' else None
+
+
+def links(path):
+    """Yield the symbolic links existing under the given path."""
+    for root, dirs, files in os.walk(path):
+        for name in dirs + files:
+            if os.path.islink(f'{root}/{name}'):
+                yield f'{root}/{name}'
+
+
+def diff_files(f1, f2, size_threshold=10_000_000):
+    """Return True if files f1 and f2 differ (do not have the same content)."""
+    s1 = os.stat(f1).st_size
+    s2 = os.stat(f2).st_size
+
+    if s1 != s2:
+        return True  # files differ, no need to look at the contents
+    elif s1 < size_threshold:
+        return open(f1, 'rb').read() != open(f2, 'rb').read()
+    else:
+        warn(f'Skipping diff of big ({s1 // 1_000_000} MB) files: {f1} {f2}')
+        return False  # we assume they are the same
+
+
+def warn(text):
+    warning(red(text))
+
+
+def ansi(n):
+    "Return function that escapes text with ANSI color n"
+    def color(txt):
+        on  = f'\x1b[{n}m'  # turn color n on
+        off = f'\x1b[{0}m'  # turn color off (set color 0)
+        return on + txt.replace(off, off + on) + off
+    return color
+
+black, red, green, yellow, blue, magenta, cyan, white = \
+    map(ansi, range(30, 38)) if sys.stdout.isatty() else [lambda x: x]*8
+
+
+
+if __name__ == '__main__':
+    main()

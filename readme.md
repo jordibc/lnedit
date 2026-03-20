@@ -55,6 +55,25 @@ copied anything else. It means that my program will run using all my
 colleague's files, except for the ones that I modified.
 
 
+## lndiff
+
+There is a companion program, `lndiff`, to check if there are
+differences between:
+
+- a directory that used to be a link and we converted into editable form with `lnedit`
+- the directory that it used to link to
+
+For example, if we are in that directory that used to be a link:
+
+```sh
+$ lndiff .
+```
+
+will show all the files and directories that exist in the originally
+linked directory and do not match (either because we changed them or
+because they changed or were added in the linked directory).
+
+
 ## ⚖️ License
 
 This program is licensed under the GPL v3. See the [project
