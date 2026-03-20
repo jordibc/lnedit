@@ -27,23 +27,7 @@ def main():
     cwd = os.getcwd()
 
     for path in args.links:
-        path = path.rstrip('/')  # in case we got a directory ending with "/"
-
-        # For absolute paths, start at / and make it relative from there.
-        if path.startswith('/'):
-            os.chdir('/')
-            path = path.lstrip('/')
-
-        # Make editable the parent directories until we get to the tip.
-        while True:
-            if '/' in path:  # make the base directory editable first
-                dirname, path = path.split('/', 1)
-                edit(dirname)
-                os.chdir(dirname)
-            else:  # we are at the end, no more base directories!
-                edit(path)
-                break
-
+        edit(path)
         os.chdir(cwd)
 
 
@@ -58,8 +42,28 @@ def get_args():
     return parser.parse_args()
 
 
-def edit(link):
-    """Convert link into an "editable" form."""
+def edit(path):
+    """Convert link into an "editable" form (recursively)."""
+    path = path.rstrip('/')  # in case we got a directory ending with "/"
+
+    # For absolute paths, start at / and make it relative from there.
+    if path.startswith('/'):
+        os.chdir('/')
+        path = path.lstrip('/')
+
+    # Make editable the parent directories until we get to the tip.
+    while True:
+        if '/' in path:  # make the base directory editable first
+            dirname, path = path.split('/', 1)
+            edit(dirname)
+            os.chdir(dirname)
+        else:  # we are at the end, no more base directories!
+            edit_single(path)
+            break
+
+
+def edit_single(link):
+    """Convert link into an "editable" form (single file/dir)."""
     # Skip non-links.
     if not os.path.islink(link):
         info('Skipping %s -- not a link' % link)
