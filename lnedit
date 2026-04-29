@@ -70,6 +70,7 @@ def edit_single(link):
         return  # nothing to do, it is already not a link
 
     path = os.path.realpath(link)
+    # Not just  os.readlink(link)  since we want to *edit* the file.
 
     os.remove(link)  # remove the link, we will change it for its old content
 
@@ -80,8 +81,8 @@ def edit_single(link):
         for name in os.listdir(path):
             os.symlink('%s/%s' % (path, name), '%s/%s' % (link, name))
     else:  # all the rest (normally files) are just copied
-        shutil.copyfile(path, link)
-        shutil.copymode(path, link)  # keeping the original permissions
+        shutil.copy(path, link)
+        shutil.copystat(path, link)  # keep original permissions and metadata
 
 
 
