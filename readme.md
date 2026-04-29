@@ -13,7 +13,7 @@ directory hierarchy and finally copy the target file.
 ## 📥 Installation
 
 Just copy the `lnedit` file anywhere you want. I have it in my
-`$HOME/.local/bin` directory (which is in my `$PATH`.)
+`$HOME/.local/bin` directory (which is in my `$PATH`).
 
 
 ## 💡 Rationale
